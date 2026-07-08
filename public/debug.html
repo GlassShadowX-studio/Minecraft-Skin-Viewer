@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debug - 面编号诊断</title>
+<style>
+body{margin:0;overflow:hidden;font-family:monospace}
+#info{position:fixed;top:10px;left:10px;background:rgba(0,0,0,0.75);color:#0f0;padding:10px 14px;border-radius:4px;font-size:12px;z-index:10;line-height:1.6}
+.legend{position:fixed;top:10px;right:10px;background:rgba(0,0,0,0.75);color:#fff;padding:10px;border-radius:4px;font-size:11px;z-index:10;line-height:1.4}
+</style>
+</head>
+<body>
+<div class="legend">
+<b>标签颜色:</b><br>
+<span style="color:#ff0">■黄</span>=前/后<br>
+<span style="color:#0af">■蓝</span>=-X面(左侧)<br>
+<span style="color:#f00">■红</span>=+X面(右侧)<br><br>
+<b>贴图颜色:</b><br>
+<span style="color:#0ff">■青</span>=右侧纹理<br>
+<span style="color:#f00">■</span>=正面<br>
+<span style="color:#0f0">■绿</span>=左侧<br>
+<span style="color:#f0f">■</span>=背面
+</div>
+<div id="info"><b>调试</b> — 拖拽旋转<br>每个面有3D数字标签</div>
+
+<script type="importmap">
+{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+
+const S=new THREE.Scene();S.background=new THREE.Color(0x333333);
+const C=new THREE.PerspectiveCamera(45,innerWidth/innerHeight,1,200);C.position.set(0,14,40);
+const R=new THREE.WebGLRenderer({antialias:true});R.setSize(innerWidth,innerHeight);R.outputColorSpace=THREE.SRGBColorSpace;
+document.body.appendChild(R.domElement);
+const O=new OrbitControls(C,R.domElement);O.target.set(0,12,0);O.enableDamping=true;O.dampingFactor=0.05;
+S.add(new THREE.AmbientLight(0xffffff,1.2));
+const D=new THREE.DirectionalLight(0xffffff,0.5);D.position.set(8,16,12);S.add(D);
+
+const img=new Image();img.src='/debug-skin.png';
+img.onload=()=>{
+  const sc=document.createElement('canvas');sc.width=64;sc.height=64;
+  sc.getContext('2d').drawImage(img,0,0);
+  const tex=new THREE.CanvasTexture(sc);tex.magFilter=THREE.NearestFilter;tex.minFilter=THREE.NearestFilter;tex.colorSpace=THREE.SRGBColorSpace;
+  buildModel(tex);
+};
+
+const hw=2;
+
+// FACE DEFINITIONS with CORRECTED UV (matching viewer.js fix)
+const HEAD=[
+  {o:[-4,4,4],u:[1,0,0],v:[0,-1,0],n:[0,0,1],uv:[8,8],s:[8,8]},
+  {o:[4,4,-4],u:[-1,0,0],v:[0,-1,0],n:[0,0,-1],uv:[24,8],s:[8,8]},
+  {o:[-4,4,-4],u:[0,0,1],v:[0,-1,0],n:[-1,0,0],uv:[16,8],s:[8,8],f:1},   // FIXED: was [0,8]
+  {o:[4,4,4],u:[0,0,-1],v:[0,-1,0],n:[1,0,0],uv:[0,8],s:[8,8]},           // FIXED: was [16,8]
+  {o:[-4,4,-4],u:[1,0,0],v:[0,0,1],n:[0,1,0],uv:[8,0],s:[8,8]},
+  {o:[-4,-4,-4],u:[1,0,0],v:[0,0,1],n:[0,-1,0],uv:[16,0],s:[8,8]}
+];
+const BODY=[
+  {o:[-4,6,2],u:[1,0,0],v:[0,-1,0],n:[0,0,1],uv:[20,20],s:[8,12]},
+  {o:[4,6,-2],u:[-1,0,0],v:[0,-1,0],n:[0,0,-1],uv:[32,20],s:[8,12]},
+  {o:[-4,6,-2],u:[0,0,1],v:[0,-1,0],n:[-1,0,0],uv:[28,20],s:[4,12],f:1},  // FIXED: was [16,20]
+  {o:[4,6,2],u:[0,0,-1],v:[0,-1,0],n:[1,0,0],uv:[16,20],s:[4,12]},         // FIXED: was [28,20]
+  {o:[-4,6,-2],u:[1,0,0],v:[0,0,1],n:[0,1,0],uv:[20,16],s:[8,4]},
+  {o:[-4,-6,-2],u:[1,0,0],v:[0,0,1],n:[0,-1,0],uv:[28,16],s:[8,4]}
+];
+const RARM=[
+  {o:[-hw,0,2],u:[1,0,0],v:[0,-1,0],n:[0,0,1],uv:[44,20],s:[4,12]},
+  {o:[hw,0,-2],u:[-1,0,0],v:[0,-1,0],n:[0,0,-1],uv:[52,20],s:[4,12]},
+  {o:[-hw,0,-2],u:[0,0,1],v:[0,-1,0],n:[-1,0,0],uv:[48,20],s:[4,12],f:1},  // FIXED: was [40,20]
+  {o:[hw,0,2],u:[0,0,-1],v:[0,-1,0],n:[1,0,0],uv:[40,20],s:[4,12]},         // FIXED: was [48,20]
+  {o:[-hw,0,-2],u:[1,0,0],v:[0,0,1],n:[0,1,0],uv:[44,16],s:[4,4]},
+  {o:[-hw,-12,-2],u:[1,0,0],v:[0,0,1],n:[0,-1,0],uv:[48,16],s:[4,4]}
+];
+const LARM=[
+  {o:[-hw,0,2],u:[1,0,0],v:[0,-1,0],n:[0,0,1],uv:[36,52],s:[4,12]},
+  {o:[hw,0,-2],u:[-1,0,0],v:[0,-1,0],n:[0,0,-1],uv:[44,52],s:[4,12]},
+  {o:[-hw,0,-2],u:[0,0,1],v:[0,-1,0],n:[-1,0,0],uv:[40,52],s:[4,12],f:1},  // FIXED: was [32,52]
+  {o:[hw,0,2],u:[0,0,-1],v:[0,-1,0],n:[1,0,0],uv:[32,52],s:[4,12]},         // FIXED: was [40,52]
+  {o:[-hw,0,-2],u:[1,0,0],v:[0,0,1],n:[0,1,0],uv:[36,48],s:[4,4]},
+  {o:[-hw,-12,-2],u:[1,0,0],v:[0,0,1],n:[0,-1,0],uv:[40,48],s:[4,4]}
+];
+const RLEG=[
+  {o:[-2,0,2],u:[1,0,0],v:[0,-1,0],n:[0,0,1],uv:[4,20],s:[4,12]},
+  {o:[2,0,-2],u:[-1,0,0],v:[0,-1,0],n:[0,0,-1],uv:[12,20],s:[4,12]},
+  {o:[-2,0,-2],u:[0,0,1],v:[0,-1,0],n:[-1,0,0],uv:[8,20],s:[4,12],f:1},    // FIXED: was [0,20]
+  {o:[2,0,2],u:[0,0,-1],v:[0,-1,0],n:[1,0,0],uv:[0,20],s:[4,12]},           // FIXED: was [8,20]
+  {o:[-2,0,-2],u:[1,0,0],v:[0,0,1],n:[0,1,0],uv:[4,16],s:[4,4]},
+  {o:[-2,-12,-2],u:[1,0,0],v:[0,0,1],n:[0,-1,0],uv:[8,16],s:[4,4]}
+];
+const LLEG=[
+  {o:[-2,0,2],u:[1,0,0],v:[0,-1,0],n:[0,0,1],uv:[20,52],s:[4,12]},
+  {o:[2,0,-2],u:[-1,0,0],v:[0,-1,0],n:[0,0,-1],uv:[28,52],s:[4,12]},
+  {o:[-2,0,-2],u:[0,0,1],v:[0,-1,0],n:[-1,0,0],uv:[24,52],s:[4,12],f:1},   // FIXED: was [16,52]
+  {o:[2,0,2],u:[0,0,-1],v:[0,-1,0],n:[1,0,0],uv:[16,52],s:[4,12]},          // FIXED: was [24,52]
+  {o:[-2,0,-2],u:[1,0,0],v:[0,0,1],n:[0,1,0],uv:[20,48],s:[4,4]},
+  {o:[-2,-12,-2],u:[1,0,0],v:[0,0,1],n:[0,-1,0],uv:[24,48],s:[4,4]}
+];
+
+function plane(f,tex,id,color){
+  const[ox,oy,oz]=f.o,[ux,uy,uz]=f.u,[vx,vy,vz]=f.v,[u0,v0]=f.uv,[w,h]=f.s;
+  let um=u0/64,uM=(u0+w)/64,vm=1-(v0+h)/64,vM=1-v0/64;
+  if(f.f)[um,uM]=[uM,um];
+  const g=new THREE.PlaneGeometry(w,h),p=g.attributes.position,uvs=g.attributes.uv;
+  for(let i=0;i<p.count;i++){const x=p.getX(i),y=p.getY(i);uvs.setXY(i,um+(x/w+.5)*(uM-um),vm+(y/h+.5)*(vM-vm));}
+  const m=new THREE.MeshBasicMaterial({map:tex,transparent:true,alphaTest:0.1,side:THREE.DoubleSide});
+  const me=new THREE.Mesh(g,m);
+  me.position.set(ox+w/2*ux+h/2*vx,oy+w/2*uy+h/2*vy,oz+w/2*uz+h/2*vz);
+  me.setRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,0,1),new THREE.Vector3(...f.n)));
+  // Add floating label sprite
+  const ca=document.createElement('canvas');ca.width=64;ca.height=64;
+  const cx=ca.getContext('2d');cx.fillStyle=color;cx.font='bold 36px monospace';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(String(id),32,32);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(ca),depthTest:false}));
+  const[nx,ny,nz]=f.n;sp.position.copy(me.position).add(new THREE.Vector3(nx*2,ny, nz*2));sp.scale.set(2.5,2.5,1);
+  me.add(sp);
+  return me;
+}
+
+function part(faces,pivot,tex,startId){
+  const g=new THREE.Group();
+  faces.forEach((f,i)=>{
+    let col='#ff0',id=startId+i;
+    if(f.n[0]===-1)col='#0af';else if(f.n[0]===1)col='#f00';else if(f.n[2]===-1)col='#fa0';
+    g.add(plane(f,tex,id,col));
+  });
+  g.position.set(...pivot);return g;
+}
+
+function buildModel(tex){
+  const M=new THREE.Group();
+  M.add(part(HEAD,[0,28,0],tex,1));
+  M.add(part(BODY,[0,18,0],tex,7));
+  M.add(part(RARM,[-(4+hw-0.1),24,0],tex,13));
+  M.add(part(LARM,[(4+hw-0.1),24,0],tex,19));
+  M.add(part(RLEG,[-2,12,0],tex,25));
+  M.add(part(LLEG,[2,12,0],tex,31));
+  M.position.y=-14;S.add(M);
+}
+
+// Axis
+function ax(a,b,c){S.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a),new THREE.Vector3(...b)]),new THREE.LineBasicMaterial({color:c})));}
+ax([0,0,0],[20,0,0],0xf00);ax([0,0,0],[0,20,0],0x0f0);ax([0,0,0],[0,0,20],0x00f);
+(function sl(t,p,c){const ca=document.createElement('canvas');ca.width=64;ca.height=64;const cx=ca.getContext('2d');cx.fillStyle=c;cx.font='bold 40px monospace';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(t,32,32);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(ca)}));s.position.set(...p);s.scale.set(3,3,1);S.add(s);})('+X',[22,0,0],'#f00');
+(function sl(t,p,c){const ca=document.createElement('canvas');ca.width=64;ca.height=64;const cx=ca.getContext('2d');cx.fillStyle=c;cx.font='bold 40px monospace';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(t,32,32);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(ca)}));s.position.set(...p);s.scale.set(3,3,1);S.add(s);})('+Y',[0,22,0],'#0f0');
+(function sl(t,p,c){const ca=document.createElement('canvas');ca.width=64;ca.height=64;const cx=ca.getContext('2d');cx.fillStyle=c;cx.font='bold 40px monospace';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(t,32,32);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(ca)}));s.position.set(...p);s.scale.set(3,3,1);S.add(s);})('+Z',[0,0,22],'#00f');
+
+(function A(){requestAnimationFrame(A);O.update();R.render(S,C);})();
+addEventListener('resize',()=>{C.aspect=innerWidth/innerHeight;C.updateProjectionMatrix();R.setSize(innerWidth,innerHeight);});
+</script>
+</body>
+</html>

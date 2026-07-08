@@ -298,7 +298,7 @@ function buildModel(canvas, isSlim, capeCanvas) {
     const headFaces = [
         { o3: [-4, 4, 4], uA: [1, 0, 0], vA: [0, -1, 0], n: [0, 0, 1], uv: [8, 8], s: [8, 8], uvO: [40, 8], baseOffset: BO, overlayOffset: OO },
         { o3: [4, 4, -4], uA: [-1, 0, 0], vA: [0, -1, 0], n: [0, 0, -1], uv: [24, 8], s: [8, 8], uvO: [56, 8], baseOffset: BO, overlayOffset: OO },
-        { o3: [-4, 4, -4], uA: [0, 0, 1], vA: [0, -1, 0], n: [-1, 0, 0], uv: [0, 8], s: [8, 8], uvO: [32, 8], baseOffset: BO, overlayOffset: OO, flipU: true },
+        { o3: [-4, 4, 4], uA: [0, 0, -1], vA: [0, -1, 0], n: [-1, 0, 0], uv: [0, 8], s: [8, 8], uvO: [32, 8], baseOffset: BO, overlayOffset: OO },
         { o3: [4, 4, 4], uA: [0, 0, -1], vA: [0, -1, 0], n: [1, 0, 0], uv: [16, 8], s: [8, 8], uvO: [48, 8], baseOffset: BO, overlayOffset: OO },
         { o3: [-4, 4, -4], uA: [1, 0, 0], vA: [0, 0, 1], n: [0, 1, 0], uv: [8, 0], s: [8, 8], uvO: [40, 0], baseOffset: BO, overlayOffset: OO },
         { o3: [-4, -4, -4], uA: [1, 0, 0], vA: [0, 0, 1], n: [0, -1, 0], uv: [16, 0], s: [8, 8], uvO: [48, 0], baseOffset: BO, overlayOffset: OO }
@@ -307,7 +307,7 @@ function buildModel(canvas, isSlim, capeCanvas) {
     const bodyFaces = [
         { o3: [-4, 6, 2], uA: [1, 0, 0], vA: [0, -1, 0], n: [0, 0, 1], uv: [20, 20], s: [8, 12], uvO: [20, 36], baseOffset: BO, overlayOffset: OO },
         { o3: [4, 6, -2], uA: [-1, 0, 0], vA: [0, -1, 0], n: [0, 0, -1], uv: [32, 20], s: [8, 12], uvO: [32, 36], baseOffset: BO, overlayOffset: OO },
-        { o3: [-4, 6, -2], uA: [0, 0, 1], vA: [0, -1, 0], n: [-1, 0, 0], uv: [16, 20], s: [4, 12], uvO: [16, 36], baseOffset: BO, overlayOffset: OO, flipU: true },
+        { o3: [-4, 6, 2], uA: [0, 0, -1], vA: [0, -1, 0], n: [-1, 0, 0], uv: [16, 20], s: [4, 12], uvO: [16, 36], baseOffset: BO, overlayOffset: OO },
         { o3: [4, 6, 2], uA: [0, 0, -1], vA: [0, -1, 0], n: [1, 0, 0], uv: [28, 20], s: [4, 12], uvO: [28, 36], baseOffset: BO, overlayOffset: OO },
         { o3: [-4, 6, -2], uA: [1, 0, 0], vA: [0, 0, 1], n: [0, 1, 0], uv: [20, 16], s: [8, 4], uvO: [20, 32], baseOffset: BO, overlayOffset: OO },
         { o3: [-4, -6, -2], uA: [1, 0, 0], vA: [0, 0, 1], n: [0, -1, 0], uv: [28, 16], s: [8, 4], uvO: [28, 32], baseOffset: BO, overlayOffset: OO }
@@ -316,7 +316,7 @@ function buildModel(canvas, isSlim, capeCanvas) {
     const rArmFaces = [
         { o3: [-hw, 0, 2], uA: [1, 0, 0], vA: [0, -1, 0], n: [0, 0, 1], uv: [44, 20], s: [armW, 12], uvO: [44, 36], baseOffset: BO, overlayOffset: OO },
         { o3: [hw, 0, -2], uA: [-1, 0, 0], vA: [0, -1, 0], n: [0, 0, -1], uv: [44 + armW * 2, 20], s: [armW, 12], uvO: [44 + armW * 2, 36], baseOffset: BO, overlayOffset: OO },
-        { o3: [-hw, 0, -2], uA: [0, 0, 1], vA: [0, -1, 0], n: [-1, 0, 0], uv: [40, 20], s: [4, 12], uvO: [40, 36], baseOffset: BO, overlayOffset: OO, flipU: true },
+        { o3: [-hw, 0, 2], uA: [0, 0, -1], vA: [0, -1, 0], n: [-1, 0, 0], uv: [40, 20], s: [4, 12], uvO: [40, 36], baseOffset: BO, overlayOffset: OO },
         { o3: [hw, 0, 2], uA: [0, 0, -1], vA: [0, -1, 0], n: [1, 0, 0], uv: [44 + armW, 20], s: [4, 12], uvO: [44 + armW, 36], baseOffset: BO, overlayOffset: OO },
         { o3: [-hw, 0, -2], uA: [1, 0, 0], vA: [0, 0, 1], n: [0, 1, 0], uv: [44, 16], s: [armW, 4], uvO: [44, 32], baseOffset: BO, overlayOffset: OO },
         { o3: [-hw, -12, -2], uA: [1, 0, 0], vA: [0, 0, 1], n: [0, -1, 0], uv: [44 + armW, 16], s: [armW, 4], uvO: [44 + armW, 32], baseOffset: BO, overlayOffset: OO }
@@ -326,7 +326,7 @@ function buildModel(canvas, isSlim, capeCanvas) {
         ? [ 
             { o3: [-hw, 0, 2], uA: [1, 0, 0], vA: [0, -1, 0], n: [0, 0, 1], uv: [44, 20], s: [armW, 12], uvO: null, baseOffset: BO, overlayOffset: OO },
             { o3: [hw, 0, -2], uA: [-1, 0, 0], vA: [0, -1, 0], n: [0, 0, -1], uv: [44 + armW * 2, 20], s: [armW, 12], uvO: null, baseOffset: BO, overlayOffset: OO },
-            { o3: [-hw, 0, -2], uA: [0, 0, 1], vA: [0, -1, 0], n: [-1, 0, 0], uv: [40, 20], s: [4, 12], uvO: null, baseOffset: BO, overlayOffset: OO, flipU: true },
+            { o3: [-hw, 0, 2], uA: [0, 0, -1], vA: [0, -1, 0], n: [-1, 0, 0], uv: [40, 20], s: [4, 12], uvO: null, baseOffset: BO, overlayOffset: OO },
             { o3: [hw, 0, 2], uA: [0, 0, -1], vA: [0, -1, 0], n: [1, 0, 0], uv: [44 + armW, 20], s: [4, 12], uvO: null, baseOffset: BO, overlayOffset: OO },
             { o3: [-hw, 0, -2], uA: [1, 0, 0], vA: [0, 0, 1], n: [0, 1, 0], uv: [44, 16], s: [armW, 4], uvO: null, baseOffset: BO, overlayOffset: OO },
             { o3: [-hw, -12, -2], uA: [1, 0, 0], vA: [0, 0, 1], n: [0, -1, 0], uv: [44 + armW, 16], s: [armW, 4], uvO: null, baseOffset: BO, overlayOffset: OO }
@@ -334,7 +334,7 @@ function buildModel(canvas, isSlim, capeCanvas) {
         : [ 
             { o3: [-hw, 0, 2], uA: [1, 0, 0], vA: [0, -1, 0], n: [0, 0, 1], uv: [36, 52], s: [armW, 12], uvO: [52, 52], baseOffset: BO, overlayOffset: OO },
             { o3: [hw, 0, -2], uA: [-1, 0, 0], vA: [0, -1, 0], n: [0, 0, -1], uv: [36 + armW + 4, 52], s: [armW, 12], uvO: [52 + armW + 4, 52], baseOffset: BO, overlayOffset: OO },
-            { o3: [-hw, 0, -2], uA: [0, 0, 1], vA: [0, -1, 0], n: [-1, 0, 0], uv: [32, 52], s: [4, 12], uvO: [48, 52], baseOffset: BO, overlayOffset: OO, flipU: true },
+            { o3: [-hw, 0, 2], uA: [0, 0, -1], vA: [0, -1, 0], n: [-1, 0, 0], uv: [32, 52], s: [4, 12], uvO: [48, 52], baseOffset: BO, overlayOffset: OO },
             { o3: [hw, 0, 2], uA: [0, 0, -1], vA: [0, -1, 0], n: [1, 0, 0], uv: [36 + armW, 52], s: [4, 12], uvO: [52 + armW, 52], baseOffset: BO, overlayOffset: OO },
             { o3: [-hw, 0, -2], uA: [1, 0, 0], vA: [0, 0, 1], n: [0, 1, 0], uv: [36, 48], s: [armW, 4], uvO: [52, 48], baseOffset: BO, overlayOffset: OO },
             { o3: [-hw, -12, -2], uA: [1, 0, 0], vA: [0, 0, 1], n: [0, -1, 0], uv: [36 + armW, 48], s: [armW, 4], uvO: [52 + armW, 48], baseOffset: BO, overlayOffset: OO }
@@ -343,7 +343,7 @@ function buildModel(canvas, isSlim, capeCanvas) {
     const rLegFaces = [
         { o3: [-2, 0, 2], uA: [1, 0, 0], vA: [0, -1, 0], n: [0, 0, 1], uv: [4, 20], s: [4, 12], uvO: [4, 36], baseOffset: BO, overlayOffset: OO },
         { o3: [2, 0, -2], uA: [-1, 0, 0], vA: [0, -1, 0], n: [0, 0, -1], uv: [12, 20], s: [4, 12], uvO: [12, 36], baseOffset: BO, overlayOffset: OO },
-        { o3: [-2, 0, -2], uA: [0, 0, 1], vA: [0, -1, 0], n: [-1, 0, 0], uv: [0, 20], s: [4, 12], uvO: [0, 36], baseOffset: BO, overlayOffset: OO, flipU: true },
+        { o3: [-2, 0, 2], uA: [0, 0, -1], vA: [0, -1, 0], n: [-1, 0, 0], uv: [0, 20], s: [4, 12], uvO: [0, 36], baseOffset: BO, overlayOffset: OO },
         { o3: [2, 0, 2], uA: [0, 0, -1], vA: [0, -1, 0], n: [1, 0, 0], uv: [8, 20], s: [4, 12], uvO: [8, 36], baseOffset: BO, overlayOffset: OO },
         { o3: [-2, 0, -2], uA: [1, 0, 0], vA: [0, 0, 1], n: [0, 1, 0], uv: [4, 16], s: [4, 4], uvO: [4, 32], baseOffset: BO, overlayOffset: OO },
         { o3: [-2, -12, -2], uA: [1, 0, 0], vA: [0, 0, 1], n: [0, -1, 0], uv: [8, 16], s: [4, 4], uvO: [8, 32], baseOffset: BO, overlayOffset: OO }
@@ -352,7 +352,7 @@ function buildModel(canvas, isSlim, capeCanvas) {
     const lLegFaces = [
         { o3: [-2, 0, 2], uA: [1, 0, 0], vA: [0, -1, 0], n: [0, 0, 1], uv: isLegacySkin ? [4, 20] : [20, 52], s: [4, 12], uvO: isLegacySkin ? null : [4, 52], baseOffset: BO, overlayOffset: OO },
         { o3: [2, 0, -2], uA: [-1, 0, 0], vA: [0, -1, 0], n: [0, 0, -1], uv: isLegacySkin ? [12, 20] : [28, 52], s: [4, 12], uvO: isLegacySkin ? null : [12, 52], baseOffset: BO, overlayOffset: OO },
-        { o3: [-2, 0, -2], uA: [0, 0, 1], vA: [0, -1, 0], n: [-1, 0, 0], uv: isLegacySkin ? [0, 20] : [16, 52], s: [4, 12], uvO: isLegacySkin ? null : [0, 52], baseOffset: BO, overlayOffset: OO, flipU: true },
+        { o3: [-2, 0, 2], uA: [0, 0, -1], vA: [0, -1, 0], n: [-1, 0, 0], uv: isLegacySkin ? [0, 20] : [16, 52], s: [4, 12], uvO: isLegacySkin ? null : [0, 52], baseOffset: BO, overlayOffset: OO },
         { o3: [2, 0, 2], uA: [0, 0, -1], vA: [0, -1, 0], n: [1, 0, 0], uv: isLegacySkin ? [8, 20] : [24, 52], s: [4, 12], uvO: isLegacySkin ? null : [8, 52], baseOffset: BO, overlayOffset: OO },
         { o3: [-2, 0, -2], uA: [1, 0, 0], vA: [0, 0, 1], n: [0, 1, 0], uv: isLegacySkin ? [4, 16] : [20, 48], s: [4, 4], uvO: isLegacySkin ? null : [4, 48], baseOffset: BO, overlayOffset: OO },
         { o3: [-2, -12, -2], uA: [1, 0, 0], vA: [0, 0, 1], n: [0, -1, 0], uv: isLegacySkin ? [8, 16] : [24, 48], s: [4, 4], uvO: isLegacySkin ? null : [8, 48], baseOffset: BO, overlayOffset: OO }
@@ -418,7 +418,7 @@ function buildModel(canvas, isSlim, capeCanvas) {
         ];
         const capePart = buildBasePlanes(capeFaces, capeCanvas, capeH);
         if (capePart) {
-            capePart.position.set(0, 4, -2.5);
+            capePart.position.set(0, 6.5, -2.5);
             parts.bodyGroup.add(capePart);
             capeMesh = capePart;
         }
