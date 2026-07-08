@@ -9,7 +9,7 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 核心：允许前端直接通过 import map 读取本地 npm 安装的 three.js
+//前端通过 import map 读取three.js
 app.use('/node_modules/three', express.static(path.join(__dirname, 'node_modules/three')));
 
 const cache = new Map();
@@ -78,5 +78,5 @@ app.get('/api/default-skin/:model', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`\x1b[32m%s\x1b[0m`, `✓ Mc皮肤预览 Server running on http://localhost:${PORT}`);
+    console.log(`\x1b[32m%s\x1b[0m`, `Mc皮肤预览 Server running on http://localhost:${PORT}`);
 });

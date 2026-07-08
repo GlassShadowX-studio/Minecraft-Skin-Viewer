@@ -540,7 +540,7 @@ function animate() {
 async function loadSkin() {
     const id = document.getElementById('player-id').value.trim();
     if (!id) return;
-    showToast('正在通过 Node 代理获取官方数据...', '');
+    showToast('正在获取皮肤...', '');
     try {
         const data = await getPlayerData(id);
         if (!data) { showToast('未找到该玩家', 'error'); return; }
