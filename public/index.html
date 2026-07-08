@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mc皮肤预览</title>
+    <style>
+        :root { --bg: #ffffff; --border: #eaeaea; --text-main: #000000; --text-secondary: #666666; --hover-bg: #fafafa; }
+        body { margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; background-color: var(--bg); color: var(--text-main); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+        .header { display: flex; align-items: center; justify-content: center; padding: 12px 20px; border-bottom: 1px solid var(--border); background: var(--bg); z-index: 10; gap: 16px; flex-shrink: 0; flex-wrap: wrap; }
+        .header h1 { font-size: 16px; font-weight: 600; margin: 0; white-space: nowrap; letter-spacing: -0.02em; }
+        .search-box { display: flex; flex: 1; max-width: 400px; min-width: 200px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; background: var(--bg); transition: border-color 0.2s; }
+        .search-box:focus-within { border-color: var(--text-main); }
+        .search-box input { flex: 1; border: none; outline: none; padding: 8px 12px; font-size: 14px; background: transparent; min-width: 0; color: var(--text-main); }
+        .icon-btn { background: transparent; border: none; border-left: 1px solid var(--border); padding: 8px 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: all 0.2s; }
+        .icon-btn:first-of-type { border-left: none; }
+        .icon-btn:hover { color: var(--text-main); background: var(--hover-bg); }
+        .main-view { flex: 1; position: relative; overflow: hidden; background: #f8f9fa; }
+        .footer { display: flex; align-items: center; justify-content: center; padding: 12px 20px; border-top: 1px solid var(--border); background: var(--bg); z-index: 10; gap: 16px; flex-shrink: 0; flex-wrap: wrap; }
+        
+        /* 自定义下拉框样式 */
+        .custom-select { position: relative; flex: 1; max-width: 200px; min-width: 120px; }
+        .select-selected {
+            width: 100%; padding: 8px 32px 8px 12px; border: 1px solid var(--border);
+            border-radius: 6px; background: var(--bg); font-size: 14px; color: var(--text-main);
+            cursor: pointer; transition: border-color 0.2s; display: flex; justify-content: space-between; align-items: center;
+        }
+        .select-selected:hover { border-color: #ccc; }
+        .select-selected svg { transition: transform 0.2s; }
+        .custom-select.active .select-selected svg { transform: rotate(180deg); }
+        
+        .select-items {
+            position: absolute; bottom: calc(100% + 8px); left: 0; width: 100%;
+            max-height: 250px; overflow-y: auto; background: var(--bg); border: 1px solid var(--border);
+            border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); z-index: 30;
+        }
+        .select-items div { padding: 8px 12px; cursor: pointer; font-size: 14px; }
+        .select-items div:hover { background: var(--hover-bg); }
+        .select-hide { display: none; }
+
+        .options-container { position: relative; flex: 1; max-width: 200px; min-width: 120px; }
+        .btn-secondary { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); font-size: 14px; color: var(--text-main); cursor: pointer; transition: all 0.2s; }
+        .btn-secondary:hover { border-color: #ccc; background: var(--hover-bg); }
+        
+        /* 修复选项卡片溢出：改为右对齐并限制最大宽度 */
+        .options-panel {
+            position: absolute; bottom: calc(100% + 8px); right: 0; left: auto; transform: none;
+            background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: none; width: 220px; max-width: 90vw; z-index: 20;
+        }
+        .options-panel.active { display: block; }
+
+        .toggle-switch { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 13px; color: var(--text-main); }
+        .toggle-switch:last-child { margin-bottom: 0; }
+        .switch { position: relative; display: inline-block; width: 32px; height: 18px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #eaeaea; transition: .3s; border-radius: 18px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 2px; bottom: 2px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        input:checked + .slider { background-color: var(--text-main); }
+        input:checked + .slider:before { transform: translateX(14px); }
+        .toast { position: fixed; top: 80px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--text-main); color: #fff; padding: 8px 16px; border-radius: 6px; font-size: 13px; opacity: 0; transition: all 0.3s ease; pointer-events: none; z-index: 100; white-space: nowrap; }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        .toast.error { background: #e00; }
+        .toast.success { background: #0a0; }
+        @media (max-width: 600px) { .header { padding: 12px; gap: 12px; } .header h1 { width: 100%; text-align: center; } .search-box { width: 100%; max-width: none; min-width: unset; } .footer { padding: 12px; gap: 12px; } .custom-select, .options-container { flex: 1 1 45%; max-width: none; } }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Mc皮肤预览</h1>
+        <div class="search-box">
+            <input type="text" id="player-id" placeholder="玩家 ID / UUID">
+            <button id="search-btn" class="icon-btn" title="搜索"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></button>
+            <button id="upload-btn" class="icon-btn" title="上传本地皮肤"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg></button>
+        </div>
+        <input type="file" id="file-input" accept="image/png" style="display: none;">
+    </header>
+
+    <main class="main-view" id="canvas-container"></main>
+
+    <footer class="footer">
+        <!-- 自定义 Div 下拉框 -->
+        <div class="custom-select" id="action-select">
+            <div class="select-selected">
+                <span>站立</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+            <div class="select-items select-hide">
+                <div data-value="idle">站立</div>
+                <div data-value="walk">行走</div>
+                <div data-value="run">奔跑</div>
+                <div data-value="wave">挥手</div>
+                <div data-value="jump">跳跃</div>
+                <div data-value="dance">跳舞</div>
+                <div data-value="fight">战斗</div>
+                <div data-value="sit">坐下</div>
+            </div>
+        </div>
+        
+        <div class="options-container">
+            <button id="options-btn" class="btn-secondary">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                显示选项
+            </button>
+            <div id="options-panel" class="options-panel">
+                <div class="toggle-switch"><span>外覆层 (3D凸起)</span><label class="switch"><input type="checkbox" id="toggle-overlay" checked><span class="slider"></span></label></div>
+                <div class="toggle-switch"><span>披风</span><label class="switch"><input type="checkbox" id="toggle-cape" checked><span class="slider"></span></label></div>
+                <div class="toggle-switch"><span>阴影</span><label class="switch"><input type="checkbox" id="toggle-shadows" checked><span class="slider"></span></label></div>
+                <div class="toggle-switch"><span>自动旋转</span><label class="switch"><input type="checkbox" id="toggle-rotate" checked><span class="slider"></span></label></div>
+                <div class="toggle-switch" style="border-top: 1px solid var(--border); margin-top: 12px; padding-top: 12px;"><span>Alex 模型</span><label class="switch"><input type="checkbox" id="toggle-slim"><span class="slider"></span></label></div>
+            </div>
+        </div>
+    </footer>
+
+    <div id="toast" class="toast"></div>
+
+    <!-- 核心：使用 es-module-shims 让浏览器原生支持读取本地 node_modules -->
+    <script async src="https://cdn.jsdelivr.net/npm/es-module-shims@2.8.2/dist/es-module-shims.min.js"></script>
+    <!-- 1. 映射 Three.js 路径，使 import 'three' 生效 -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "/node_modules/three/build/three.module.js",
+            "three/addons/": "/node_modules/three/examples/jsm/"
+        }
+    }
+    </script>
+
+    <!-- 2. 必须以 module 类型引入您的逻辑文件 -->
+    <script type="module" src="viewer.js"></script>
+</body>
+</html>
