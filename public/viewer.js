@@ -66,7 +66,8 @@ function init() {
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.NoToneMapping;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
     document.getElementById('canvas-container').appendChild(renderer.domElement);
 
     controls = new OrbitControls(camera, renderer.domElement);
@@ -79,20 +80,26 @@ function init() {
     controls.autoRotate = document.getElementById('toggle-rotate').checked;
     controls.autoRotateSpeed = 1.5;
 
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 0.5);
-    hemiLight.position.set(0, 20, 0);
+    const hemiLight = new THREE.HemisphereLight(0xffeedd, 0x8899aa, 0.7);
+    hemiLight.position.set(0, 1, 0);
     scene.add(hemiLight);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.65));
 
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.0);
-    dirLight.position.set(10, 20, 10);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+    dirLight.position.set(8, 16, 12);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.set(2048, 2048);
     dirLight.shadow.camera.top = 20;
     dirLight.shadow.camera.bottom = -20;
     dirLight.shadow.camera.left = -20;
     dirLight.shadow.camera.right = 20;
+    dirLight.shadow.bias = -0.0005;
+    dirLight.shadow.normalBias = 0.02;
     scene.add(dirLight);
+
+    const fillLight = new THREE.DirectionalLight(0x8899cc, 0.25);
+    fillLight.position.set(-5, 4, -8);
+    scene.add(fillLight);
 
     window.addEventListener('resize', onWindowResize);
     onWindowResize();
