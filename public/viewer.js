@@ -8,6 +8,8 @@ let parts = {};
 let currentSkinCanvas = null;
 let currentCapeCanvas = null;
 let isLegacySkin = false;
+let cameraAnimActive = false;
+const camTarget = { pos: new THREE.Vector3(0, 14, 45), target: new THREE.Vector3(0, 8, 0) };
 
 const toastEl = document.getElementById('toast');
 function showToast(msg, type = '') {
@@ -61,6 +63,8 @@ function init() {
     scene = new THREE.Scene();
     scene.background = new THREE.Color(0xf8f9fa);
     camera = new THREE.PerspectiveCamera(40, 1, 0.1, 1000);
+    camera.position.set(0, 30, 80);
+    camera.lookAt(0, 8, 0);
     renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
@@ -73,12 +77,21 @@ function init() {
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.target.set(0, 12, 0);
+    controls.target.set(0, 8, 0);
     controls.minDistance = 20;
     controls.maxDistance = 80;
     controls.maxPolarAngle = Math.PI / 1.8;
     controls.autoRotate = document.getElementById('toggle-rotate').checked;
     controls.autoRotateSpeed = 1.5;
+
+    // 用户操作时关闭自动旋转和相机动画
+    controls.addEventListener('start', () => {
+        cameraAnimActive = false;
+        if (controls.autoRotate) {
+            controls.autoRotate = false;
+            document.getElementById('toggle-rotate').checked = false;
+        }
+    });
 
     const hemiLight = new THREE.HemisphereLight(0xffeedd, 0x8899aa, 0.7);
     hemiLight.position.set(0, 1, 0);
@@ -291,7 +304,7 @@ function buildModel(canvas, isSlim, capeCanvas) {
     const armW = isSlim ? 3 : 4;
 
     const BO = 0.0;
-    const OO = 0.5;
+    const OO = 0.25;
     
     const hw = armW / 2; 
 
@@ -494,6 +507,19 @@ function applyAction(action, time) {
 function animate() {
     requestAnimationFrame(animate);
     const time = clock.getElapsedTime();
+
+    // 平滑移动相机到默认位置
+    if (cameraAnimActive) {
+        const lerpFactor = 1 - Math.exp(-2.5 * (1/60));
+        camera.position.lerp(camTarget.pos, lerpFactor);
+        controls.target.lerp(camTarget.target, lerpFactor);
+        if (camera.position.distanceTo(camTarget.pos) < 0.05) {
+            camera.position.copy(camTarget.pos);
+            controls.target.copy(camTarget.target);
+            cameraAnimActive = false;
+        }
+    }
+
     if (playerModel) {
         resetPose();
         applyAction(currentAction, time);
@@ -536,6 +562,9 @@ async function loadSkin() {
         }
         document.getElementById('toggle-slim').checked = isSlim;
         buildModel(currentSkinCanvas, isSlim, capeCanvas);
+        cameraAnimActive = true;
+        controls.autoRotate = true;
+        document.getElementById('toggle-rotate').checked = true;
         showToast('加载成功 (Voxel 3D)', 'success');
     } catch (err) { console.error('loadSkin error:', err); showToast('皮肤加载失败: ' + (err.message || err), 'error'); }
 }
@@ -549,6 +578,9 @@ async function loadLocalSkin(dataUrl) {
         const isSlim = detectModel(currentSkinCanvas) === 'slim';
         document.getElementById('toggle-slim').checked = isSlim;
         buildModel(currentSkinCanvas, isSlim, null);
+        cameraAnimActive = true;
+        controls.autoRotate = true;
+        document.getElementById('toggle-rotate').checked = true;
         showToast('本地皮肤加载成功', 'success');
     } catch (err) { console.error('loadLocalSkin error:', err); showToast('本地皮肤加载失败: ' + (err.message || err), 'error'); }
 }
