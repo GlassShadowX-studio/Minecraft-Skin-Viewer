@@ -453,6 +453,7 @@ function resetPose() {
 
 function applyAction(action, time) {
     const t = time * 5;
+    const runT = time * 8; // 奔跑速度加快
     switch (action) {
         case 'idle':
             parts.headGroup.rotation.y = Math.sin(time * 1.5) * 0.1;
@@ -464,25 +465,110 @@ function applyAction(action, time) {
             parts.leftArm.rotation.x = -Math.sin(t) * 0.8;
             parts.rightLeg.rotation.x = -Math.sin(t) * 0.8;
             parts.leftLeg.rotation.x = Math.sin(t) * 0.8;
+            // 走路时身体轻微晃动
+            parts.bodyGroup.rotation.y = Math.sin(t * 0.5) * 0.05;
+            parts.bodyGroup.rotation.x = Math.abs(Math.sin(t * 2)) * 0.05;
+            parts.headGroup.rotation.x = Math.abs(Math.sin(t * 2 + 0.5)) * 0.08;
             break;
         case 'run':
-            parts.bodyGroup.rotation.x = -0.2;
-            parts.rightArm.rotation.x = Math.sin(t) * 1.2 - 0.5;
-            parts.leftArm.rotation.x = -Math.sin(t) * 1.2 - 0.5;
-            parts.rightLeg.rotation.x = -Math.sin(t) * 1.2;
-            parts.leftLeg.rotation.x = Math.sin(t) * 1.2;
+            // 奔跑动作：身体前倾，重心稳定
+            parts.bodyGroup.rotation.x = 0.3; // 身体前倾（正值前倾）
+            parts.rightArm.rotation.x = Math.sin(runT) * 1.2 - 0.8; // 手臂前后摆动
+            parts.leftArm.rotation.x = -Math.sin(runT) * 1.2 - 0.8;
+            parts.rightLeg.rotation.x = -Math.sin(runT) * 1.2; // 腿部前后摆动
+            parts.leftLeg.rotation.x = Math.sin(runT) * 1.2;
+            
+            // 奔跑时身体协调晃动
+            parts.bodyGroup.rotation.y = Math.sin(runT * 0.7) * 0.1; // 减小左右晃动
+            parts.bodyGroup.rotation.z = Math.sin(runT * 1.5) * 0.05; // 减小侧倾
+            parts.headGroup.rotation.x = -0.1 + Math.sin(runT * 2) * 0.15; // 头部轻微前倾并晃动
+            parts.headGroup.rotation.z = Math.sin(runT * 3) * 0.1;
             break;
         case 'wave':
-            parts.rightArm.rotation.z = Math.sin(t * 2) * 0.5 - 2.5;
+            // 热情的打招呼动作：手臂向侧上方挥动
+            const waveTime = time * 8;
+            const waveEnergy = Math.sin(waveTime * 0.5) * 0.5 + 0.5; // 能量变化
+            
+            // 右手向侧上方举起并挥动（参考原版wave，只用z轴）
+            parts.rightArm.rotation.z = -2.5 + Math.sin(waveTime * 2) * 0.5; // 手臂向侧上方挥动
+            parts.rightArm.rotation.x = 0; // 不使用x轴旋转，避免向后倒
+            parts.rightArm.rotation.y = 0; // 不使用y轴旋转
+            
+            // 身体配合：更热情的姿态
+            parts.bodyGroup.rotation.y = 0.3 + Math.sin(waveTime * 0.3) * 0.1;
+            parts.bodyGroup.rotation.x = 0; // 身体不前倾
+            
+            // 头部配合：更活跃的头部动作
+            parts.headGroup.rotation.y = 0.4 + Math.sin(waveTime * 0.4) * 0.15;
+            parts.headGroup.rotation.x = Math.sin(waveTime * 0.6) * 0.1;
+            
+            // 左手也配合摆动
+            parts.leftArm.rotation.x = -0.4 + Math.sin(waveTime * 0.7) * 0.15;
+            parts.leftArm.rotation.z = 0.2 + Math.sin(waveTime * 0.5) * 0.1;
+            
+            // 身体轻微跳动，增加热情感
+            const waveBounce = Math.abs(Math.sin(waveTime * 2)) * 0.2;
+            playerModel.position.y = -14 + waveBounce;
             break;
         case 'jump':
-            const jp = (time * 2) % 1;
-            let jy = 0;
-            if (jp < 0.2) jy = 0;
-            else if (jp < 0.5) jy = Math.sin((jp - 0.2) / 0.3 * Math.PI) * 5;
-            playerModel.position.y = -14 + jy;
-            parts.rightArm.rotation.x = jp < 0.5 ? -2.5 : -0.5;
-            parts.leftArm.rotation.x = jp < 0.5 ? -2.5 : -0.5;
+            // 修复穿模问题的跳跃动作
+            const jumpTime = time * 1.2;
+            const jumpCycle = jumpTime % 2.8;
+            let jumpY = 0;
+            let armAngle = -0.5;
+            
+            if (jumpCycle < 0.4) {
+                // 蓄力阶段：身体微蹲，但不过度
+                const progress = jumpCycle / 0.4;
+                const smoothProgress = 0.5 - 0.5 * Math.cos(progress * Math.PI);
+                jumpY = -smoothProgress * 1;
+                armAngle = -0.5 - smoothProgress * 1.5;
+                // 身体轻微前倾，不旋转
+                parts.bodyGroup.rotation.x = smoothProgress * 0.1;
+            } else if (jumpCycle < 0.7) {
+                // 起跳阶段：平滑上升
+                const progress = (jumpCycle - 0.4) / 0.3;
+                const smoothProgress = 0.5 - 0.5 * Math.cos(progress * Math.PI);
+                jumpY = smoothProgress * 6;
+                armAngle = -2.0;
+                parts.bodyGroup.rotation.x = 0.1 * (1 - smoothProgress);
+            } else if (jumpCycle < 1.9) {
+                // 空中阶段：保持手臂向上，身体稳定
+                const progress = (jumpCycle - 0.7) / 1.2;
+                jumpY = 6 * (1 - progress * progress); // 抛物线下降
+                armAngle = -2.5;
+                // 身体保持稳定，不旋转避免穿模
+                parts.bodyGroup.rotation.set(0, 0, 0);
+                parts.headGroup.rotation.x = -0.1;
+            } else {
+                // 落地缓冲阶段
+                const progress = (jumpCycle - 1.9) / 0.9;
+                const smoothProgress = 0.5 - 0.5 * Math.cos(progress * Math.PI);
+                jumpY = 0;
+                armAngle = -2.5 + smoothProgress * 2.0;
+                parts.bodyGroup.rotation.set(0, 0, 0);
+                // 落地时轻微缓冲，不穿模
+                if (progress < 0.2) {
+                    playerModel.position.y = -14 - Math.sin(progress / 0.2 * Math.PI) * 0.5;
+                }
+            }
+            
+            playerModel.position.y = -14 + jumpY;
+            parts.rightArm.rotation.x = armAngle;
+            parts.leftArm.rotation.x = armAngle;
+            // 腿部简单配合，不过度
+            if (jumpCycle < 0.7) {
+                const legProgress = jumpCycle / 0.7;
+                parts.rightLeg.rotation.x = Math.sin(legProgress * Math.PI) * 0.3;
+                parts.leftLeg.rotation.x = -Math.sin(legProgress * Math.PI) * 0.3;
+            } else if (jumpCycle < 1.9) {
+                // 空中腿部伸直
+                parts.rightLeg.rotation.x = 0.2;
+                parts.leftLeg.rotation.x = -0.2;
+            } else {
+                parts.rightLeg.rotation.x = 0;
+                parts.leftLeg.rotation.x = 0;
+            }
             break;
         case 'dance':
             parts.rightArm.rotation.z = Math.sin(t) * 0.5 - 1.5;
@@ -500,6 +586,51 @@ function applyAction(action, time) {
             parts.leftLeg.rotation.x = -1.5;
             parts.rightArm.rotation.x = -0.5;
             parts.leftArm.rotation.x = -0.5;
+            
+            // 呼吸效果：只影响身体和头部的轻微活动，不影响整体位置
+            const breathCycle = time * 2;
+            parts.headGroup.rotation.x = Math.sin(breathCycle * 0.7) * 0.05;
+            parts.headGroup.rotation.y = Math.sin(breathCycle * 0.5) * 0.03;
+            parts.rightArm.rotation.x = -0.5 + Math.sin(breathCycle * 0.8) * 0.08;
+            parts.leftArm.rotation.x = -0.5 + Math.sin(breathCycle * 0.8 + Math.PI) * 0.08;
+            break;
+        case 'street-dance':
+            // 动作：复杂的身体协调动作
+            const sdT = time * 4;
+            const sdPhase = sdT % (Math.PI * 2); // 0-2π 循环
+            
+            // 身体整体晃动
+            parts.bodyGroup.rotation.y = Math.sin(sdT * 0.5) * 0.3;
+            parts.bodyGroup.rotation.x = Math.sin(sdT * 0.3) * 0.15;
+            
+            // 头部跟随节奏
+            parts.headGroup.rotation.y = Math.sin(sdT * 0.7) * 0.4;
+            parts.headGroup.rotation.z = Math.sin(sdT * 0.4) * 0.15;
+            parts.headGroup.rotation.x = Math.sin(sdT * 0.2) * 0.1;
+            
+            // 右手臂复杂动作
+            parts.rightArm.rotation.z = -1.2 + Math.sin(sdT) * 0.8;
+            parts.rightArm.rotation.x = -0.6 + Math.sin(sdT * 1.5 + Math.PI/4) * 0.5;
+            parts.rightArm.rotation.y = Math.sin(sdT * 0.8) * 0.2;
+            
+            // 左手臂对称但延迟的动作
+            parts.leftArm.rotation.z = 1.2 + Math.sin(sdT + Math.PI) * 0.8;
+            parts.leftArm.rotation.x = -0.6 + Math.sin(sdT * 1.5 + Math.PI/4 + Math.PI) * 0.5;
+            parts.leftArm.rotation.y = Math.sin(sdT * 0.8 + Math.PI) * 0.2;
+            
+            // 右腿配合节奏
+            parts.rightLeg.rotation.x = Math.sin(sdT * 0.6) * 0.4;
+            parts.rightLeg.rotation.z = Math.sin(sdT * 0.3) * 0.15;
+            parts.rightLeg.rotation.y = Math.sin(sdT * 0.2) * 0.1;
+            
+            // 左腿协调动作
+            parts.leftLeg.rotation.x = Math.sin(sdT * 0.6 + Math.PI) * 0.4;
+            parts.leftLeg.rotation.z = Math.sin(sdT * 0.3 + Math.PI) * 0.15;
+            parts.leftLeg.rotation.y = Math.sin(sdT * 0.2 + Math.PI) * 0.1;
+            
+            // 整体高度变化（跳动效果）
+            const bounce = Math.abs(Math.sin(sdT * 2)) * 0.3;
+            playerModel.position.y = -14 + bounce;
             break;
     }
 }
@@ -507,6 +638,9 @@ function applyAction(action, time) {
 function animate() {
     requestAnimationFrame(animate);
     const time = clock.getElapsedTime();
+
+    // 更新缩放动画
+    updateZoomAnimation();
 
     // 平滑移动相机到默认位置
     if (cameraAnimActive) {
@@ -624,6 +758,49 @@ document.addEventListener('click', (e) => {
         customSelect.classList.remove('active');
     }
 });
+
+// 缩放按钮功能：调整相机距离（带平滑动画）
+const ZOOM_STEP = 8; // 每次放大/缩小变化值
+let targetCameraDistance = null; // 目标相机距离
+let zoomAnimationStartTime = null;
+const ZOOM_ANIMATION_DURATION = 300; // 缩放动画持续时间（毫秒）
+
+function handleZoom(direction) {
+    if (!camera || !controls) return;
+    const currentDist = camera.position.distanceTo(controls.target);
+    let newDist = currentDist + direction * ZOOM_STEP;
+    const clampedDist = Math.max(controls.minDistance, Math.min(controls.maxDistance, newDist));
+    
+    // 设置目标距离和动画开始时间
+    targetCameraDistance = clampedDist;
+    zoomAnimationStartTime = performance.now();
+    cameraAnimActive = false;
+}
+
+function updateZoomAnimation() {
+    if (targetCameraDistance === null || !camera || !controls) return;
+    
+    const currentTime = performance.now();
+    const elapsed = currentTime - zoomAnimationStartTime;
+    const progress = Math.min(elapsed / ZOOM_ANIMATION_DURATION, 1);
+    
+    // 使用缓出函数让动画更自然
+    const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+    
+    const currentDist = camera.position.distanceTo(controls.target);
+    const directionVec = new THREE.Vector3().subVectors(camera.position, controls.target).normalize();
+    const newDist = currentDist + (targetCameraDistance - currentDist) * easeOutCubic;
+    
+    camera.position.copy(controls.target).addScaledVector(directionVec, newDist);
+    controls.update();
+    
+    if (progress >= 1) {
+        targetCameraDistance = null;
+    }
+}
+
+document.getElementById('zoom-in-btn').addEventListener('click', () => handleZoom(-1)); // 放大：距离减小
+document.getElementById('zoom-out-btn').addEventListener('click', () => handleZoom(1)); // 缩小：距离增大
 
 document.getElementById('toggle-overlay').addEventListener('change', () => {
     if (currentSkinCanvas) buildModel(currentSkinCanvas, document.getElementById('toggle-slim').checked, currentCapeCanvas);

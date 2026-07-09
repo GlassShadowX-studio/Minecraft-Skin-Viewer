@@ -65,6 +65,81 @@
         .toast.error { background: #e00; }
         .toast.success { background: #0a0; }
         @media (max-width: 600px) { .header { padding: 12px; gap: 12px; } .header h1 { width: 100%; text-align: center; } .search-box { width: 100%; max-width: none; min-width: unset; } .footer { padding: 12px; gap: 12px; } .custom-select, .options-container { flex: 1 1 45%; max-width: none; } }
+        /* 胶囊形灵动岛缩放控件样式 - 白色主题竖直排列 */
+        .zoom-island {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 10px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 20px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.12);
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            opacity: 0.95;
+            z-index: 999;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+        .zoom-island:hover {
+            background: rgba(255, 255, 255, 0.95);
+            transform: translateY(-50%) scale(1.05);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+            opacity: 1;
+            border-color: rgba(255, 255, 255, 0.8);
+        }
+        .zoom-btn {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            background: rgba(0, 0, 0, 0.04);
+            color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            padding: 0;
+            outline: none;
+        }
+        .zoom-btn:hover {
+            background: rgba(0, 0, 0, 0.08);
+            color: rgba(0, 0, 0, 0.95);
+            transform: scale(1.15);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        }
+        .zoom-btn:active {
+            transform: scale(1.08);
+            background: rgba(0, 0, 0, 0.12);
+        }
+        .zoom-btn svg {
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        .zoom-btn:hover svg {
+            stroke-width: 2.8;
+        }
+        @media (max-width: 600px) {
+            .zoom-island {
+                right: 12px;
+                padding: 10px 8px;
+                gap: 6px;
+            }
+            .zoom-btn {
+                width: 34px;
+                height: 34px;
+            }
+            .zoom-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -97,6 +172,7 @@
                 <div data-value="wave">挥手</div>
                 <div data-value="jump">跳跃</div>
                 <div data-value="dance">跳舞</div>
+                <div data-value="street-dance">放松</div>
                 <div data-value="fight">战斗</div>
                 <div data-value="sit">坐下</div>
             </div>
@@ -118,6 +194,15 @@
     </footer>
 
     <div id="toast" class="toast"></div>
+    <!-- 胶囊形缩放按钮 -->
+    <div id="zoom-island" class="zoom-island">
+        <button id="zoom-in-btn" class="zoom-btn" title="放大">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+        <button id="zoom-out-btn" class="zoom-btn" title="缩小">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        </button>
+    </div>
 
     <!-- 核心：使用 es-module-shims 让浏览器原生支持读取本地 node_modules -->
     <script async src="https://cdn.jsdelivr.net/npm/es-module-shims@2.8.2/dist/es-module-shims.min.js"></script>
