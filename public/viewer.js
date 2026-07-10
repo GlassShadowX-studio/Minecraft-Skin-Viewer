@@ -9,6 +9,8 @@ let currentSkinCanvas = null;
 let currentCapeCanvas = null;
 let isLegacySkin = false;
 let cameraAnimActive = false;
+let currentSkinType = null; // 'online' 或 'local'
+let currentSkinData = null; // 存储当前皮肤的ID或URL
 const camTarget = { pos: new THREE.Vector3(0, 14, 45), target: new THREE.Vector3(0, 8, 0) };
 
 const toastEl = document.getElementById('toast');
@@ -685,6 +687,8 @@ async function loadSkin() {
 
         const skinData = await loadTexture(skinUrl);
         currentSkinCanvas = skinData.canvas;
+        currentSkinType = 'online';
+        currentSkinData = id;
         let capeCanvas = null;
         if (data.capeUrl) {
             try {
@@ -709,6 +713,8 @@ async function loadLocalSkin(dataUrl) {
         const skinData = await loadTexture(dataUrl);
         currentSkinCanvas = skinData.canvas;
         currentCapeCanvas = null;
+        currentSkinType = 'local';
+        currentSkinData = dataUrl;
         const isSlim = detectModel(currentSkinCanvas) === 'slim';
         document.getElementById('toggle-slim').checked = isSlim;
         buildModel(currentSkinCanvas, isSlim, null);
@@ -722,6 +728,7 @@ async function loadLocalSkin(dataUrl) {
 document.getElementById('search-btn').addEventListener('click', loadSkin);
 document.getElementById('player-id').addEventListener('keypress', (e) => { if (e.key === 'Enter') loadSkin(); });
 document.getElementById('upload-btn').addEventListener('click', () => document.getElementById('file-input').click());
+document.getElementById('share-btn').addEventListener('click', copyShareLink);
 document.getElementById('file-input').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -802,6 +809,129 @@ function updateZoomAnimation() {
 document.getElementById('zoom-in-btn').addEventListener('click', () => handleZoom(-1)); // 放大：距离减小
 document.getElementById('zoom-out-btn').addEventListener('click', () => handleZoom(1)); // 缩小：距离增大
 
+// 从URL加载分享的皮肤和动作
+async function loadFromShareLink() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const skinParam = urlParams.get('skin');
+    const runParam = urlParams.get('run');
+
+    if (skinParam) {
+        try {
+            showToast('正在加载分享的皮肤...', '');
+            
+            // 检查是否为base64编码的本地皮肤
+            if (skinParam.startsWith('data:image')) {
+                // 本地皮肤（base64）
+                await loadLocalSkin(skinParam);
+            } else {
+                // 在线皮肤：假设是玩家ID
+                try {
+                    const data = await getPlayerData(skinParam);
+                    if (data && data.skinUrl) {
+                        const skinUrl = `/api/texture?url=${encodeURIComponent(data.skinUrl)}`;
+                        const skinData = await loadTexture(skinUrl);
+                        currentSkinCanvas = skinData.canvas;
+                        currentSkinType = 'online';
+                        currentSkinData = skinParam;
+                        currentCapeCanvas = null;
+                        
+                        // 加载披风（如果有）
+                        if (data.capeUrl) {
+                            try {
+                                const proxiedCapeUrl = `/api/texture?url=${encodeURIComponent(data.capeUrl)}`;
+                                const capeData = await loadTexture(proxiedCapeUrl);
+                                currentCapeCanvas = capeData.canvas;
+                            } catch (e) { console.warn('Cape load failed:', e); }
+                        }
+                        
+                        const isSlim = detectModel(currentSkinCanvas) === 'slim';
+                        document.getElementById('toggle-slim').checked = isSlim;
+                        buildModel(currentSkinCanvas, isSlim, currentCapeCanvas);
+                        cameraAnimActive = true;
+                        controls.autoRotate = true;
+                        document.getElementById('toggle-rotate').checked = true;
+                        document.getElementById('player-id').value = skinParam;
+                        showToast('分享皮肤加载成功', 'success');
+                    } else {
+                        showToast('分享的玩家皮肤未找到', 'error');
+                    }
+                } catch (e) {
+                    showToast('分享的玩家皮肤加载失败', 'error');
+                    console.error('loadFromShareLink error:', e);
+                }
+            }
+        } catch (err) {
+            console.error('loadFromShareLink error:', err);
+            showToast('分享皮肤加载失败: ' + (err.message || err), 'error');
+        }
+    }
+
+    if (runParam) {
+        // 设置动作
+        const actionSelect = document.getElementById('action-select');
+        const actionItems = actionSelect.querySelectorAll('.select-items div');
+        let foundAction = false;
+        
+        actionItems.forEach(item => {
+            if (item.getAttribute('data-value') === runParam) {
+                currentAction = runParam;
+                actionSelect.querySelector('.select-selected span').textContent = item.textContent;
+                foundAction = true;
+            }
+        });
+
+        if (!foundAction) {
+            console.warn('Invalid action parameter:', runParam);
+        }
+    }
+}
+
+// 生成分享链接
+function generateShareLink() {
+    if (!currentSkinCanvas) {
+        showToast('请先加载皮肤', 'error');
+        return null;
+    }
+
+    const url = new URL(window.location.origin + '/share');
+    
+    // 根据皮肤类型设置参数
+    let skinParam = '';
+    
+    if (currentSkinType === 'online' && currentSkinData) {
+        // 在线皮肤，使用玩家ID
+        skinParam = currentSkinData;
+    } else {
+        // 本地皮肤，转换为base64
+        skinParam = currentSkinCanvas.toDataURL('image/png');
+    }
+    
+    url.searchParams.set('skin', skinParam);
+    url.searchParams.set('run', currentAction);
+    
+    return url.toString();
+}
+
+// 复制分享链接到剪贴板
+function copyShareLink() {
+    const shareLink = generateShareLink();
+    if (!shareLink) return;
+
+    navigator.clipboard.writeText(shareLink).then(() => {
+        showToast('分享链接已复制到剪贴板！', 'success');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        // 降级方案：创建临时输入框
+        const tempInput = document.createElement('input');
+        tempInput.value = shareLink;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showToast('分享链接已复制到剪贴板！', 'success');
+    });
+}
+
 document.getElementById('toggle-overlay').addEventListener('change', () => {
     if (currentSkinCanvas) buildModel(currentSkinCanvas, document.getElementById('toggle-slim').checked, currentCapeCanvas);
 });
@@ -810,3 +940,6 @@ document.getElementById('toggle-slim').addEventListener('change', () => {
 });
 
 init();
+
+// 页面加载时检查URL参数
+loadFromShareLink();

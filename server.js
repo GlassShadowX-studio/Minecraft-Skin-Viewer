@@ -77,6 +77,13 @@ app.get('/api/default-skin/:model', async (req, res) => {
     } catch (e) { res.status(500).send('Failed to fetch default skin'); }
 });
 
+// 分享页面路由
+app.get('/share', (req, res) => {
+    const { skin, run } = req.query;
+    // 返回分享页面，带有预填充的参数
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.listen(PORT, () => {
     console.log(`\x1b[32m%s\x1b[0m`, `Mc皮肤预览 Server running on http://localhost:${PORT}`);
 });
